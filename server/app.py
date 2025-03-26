@@ -19,14 +19,21 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger('chat_server')
 
 app = Flask(__name__)
-CORS(app, resources={r"/chat/*": {"origins": "*"}, r"/form/*": {"origins": "*"}, r"/static/*": {"origins": "*"}})
+CORS(app, resources={r"/*": {"origins": "*"}})
 app.secret_key = secrets.token_hex(16)
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(hours=24)
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
+app.config['POLLING_ENABLED'] = True  # Включаем поддержку HTTP-опроса
+
+# Определяем домен для API
+API_DOMAIN = os.environ.get('API_DOMAIN', 'online-prava-shop.ru')
+
+# Настройка CORS и Socket.IO для этого домена
+socketio = SocketIO(app, cors_allowed_origins=["*", f"https://{API_DOMAIN}", f"http://{API_DOMAIN}"], 
+                   async_mode='threading')
 
 # Настройки базы данных
-DATABASE = 'chat_db.sqlite'
+DATABASE = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'chat_db.sqlite'))
 
 # Создание директории для статических файлов, если её нет
 STATIC_DIR = os.path.join(os.path.dirname(__file__), 'static')
@@ -1159,7 +1166,7 @@ def api_check_new_messages():
             message_list.append(message_dict)
         
         # Отмечаем сообщения как прочитанные, если они от оператора
-        if message_list and data.get('sender') == 'user':
+        if message_list:
             cursor.execute('''
             UPDATE chat_messages SET is_read = 1
             WHERE chat_id = ? AND sender = 'operator' AND is_read = 0
@@ -1168,12 +1175,15 @@ def api_check_new_messages():
         
         db.close()
         
-        return jsonify({
-            "success": True,
-            "messages": message_list
-        })
+        # Отправляем ответ клиенту
+        emit('check_new_messages_response', {
+            'success': True,
+            'messages': message_list
+        }, room=request.sid)
+        
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)})
+        logger.error(f"Ошибка при проверке новых сообщений: {e}")
+        emit('error', {'error': str(e)}, room=request.sid)
 
 @socketio.on('connect')
 def handle_connect():
@@ -1751,9 +1761,89 @@ def fromjson_filter(value):
     except (ValueError, TypeError):
         return {}
 
+# Добавляем конечную точку для HTTP-опроса сообщений (для хостингов без WebSocket)
+@app.route('/chat/poll_messages', methods=['GET'])
+def poll_messages():
+    chat_id = request.args.get('chat_id')
+    last_time = request.args.get('last_time')
+    
+    if not chat_id:
+        return jsonify({'success': False, 'error': "Missing required parameter: chat_id"})
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    # Проверяем существование чата
+    cursor.execute("SELECT * FROM chats WHERE chat_id = ?", (chat_id,))
+    chat = cursor.fetchone()
+    
+    if not chat:
+        db.close()
+        return jsonify({'success': False, 'error': "Chat not found"})
+    
+    # Обновляем время последней активности
+    timestamp = datetime.datetime.now().isoformat()
+    cursor.execute('''
+    UPDATE chats SET updated_at = ?
+    WHERE chat_id = ?
+    ''', (timestamp, chat_id))
+    db.commit()
+    
+    # Получаем новые сообщения из базы данных
+    query = '''
+    SELECT id, chat_id, sender, message, timestamp
+    FROM chat_messages
+    WHERE chat_id = ?
+    '''
+    params = [chat_id]
+    
+    if last_time and last_time != '0':
+        query += ' AND timestamp > ?'
+        params.append(last_time)
+    
+    query += ' ORDER BY timestamp ASC'
+    
+    cursor.execute(query, params)
+    messages = cursor.fetchall()
+    
+    # Форматируем сообщения для ответа
+    message_list = []
+    for msg in messages:
+        message_list.append({
+            'id': msg['id'],
+            'chat_id': msg['chat_id'],
+            'sender': msg['sender'],
+            'message': msg['message'],
+            'timestamp': msg['timestamp']
+        })
+    
+    # Помечаем сообщения как прочитанные, если они от оператора
+    cursor.execute('''
+    UPDATE chat_messages
+    SET is_read = 1
+    WHERE chat_id = ? AND sender = 'operator' AND is_read = 0
+    ''', (chat_id,))
+    db.commit()
+    
+    db.close()
+    
+    return jsonify({
+        'success': True,
+        'messages': message_list,
+        'chat_id': chat_id
+    })
+
 if __name__ == '__main__':
     # Инициализируем базу данных
     init_db()
     
-    # Запускаем сервер с поддержкой WebSocket
-    socketio.run(app, debug=True, host='0.0.0.0', port=5000) 
+    # Проверка, запущен ли скрипт через WSGI или напрямую
+    if os.environ.get('WSGI_ENV') == 'production':
+        # В production среде будет использоваться WSGI сервер хостинга
+        pass
+    else:
+        # Для локальной разработки
+        socketio.run(app, debug=True, host='0.0.0.0', port=5000)
+
+# Для запуска через WSGI на хостинге
+application = app 

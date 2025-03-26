@@ -3,8 +3,15 @@
  * Загружает iframe с чат-виджетом
  */
 (function() {
-    // Настройки
-    const API_URL = 'http://localhost:5000';
+    // Настройки из конфигурации
+    const config = window.CHAT_CONFIG || {
+        API_URL: 'http://localhost:5000',
+        CHAT_ENDPOINT: '',
+        WEBSOCKET_URL: 'http://localhost:5000',
+        DEBUG: true
+    };
+    
+    const API_URL = config.API_URL;
     
     // Создаем и добавляем iframe
     function createChatFrame() {

@@ -6,7 +6,16 @@
     // Уникальный идентификатор сессии чата
     let chatId = '';
     let siteId = window.location.hostname;
-    let apiUrl = 'http://localhost:5000/chat';
+    
+    // Получаем настройки из конфигурации или используем значения по умолчанию
+    const config = window.CHAT_CONFIG || {
+        API_URL: 'https://prava-online-shop.ru',
+        CHAT_ENDPOINT: '/chat',
+        WEBSOCKET_URL: 'https://prava-online-shop.ru',
+        DEBUG: false
+    };
+    
+    let apiUrl = config.API_URL + config.CHAT_ENDPOINT;
     let msgs = [];
     let unreadCount = 0;
     let isMinimized = true;
@@ -52,7 +61,7 @@
     function initializeSocket() {
         if (socket) return; // Уже инициализирован
         
-        socket = io('http://localhost:5000');
+        socket = io(config.WEBSOCKET_URL);
         
         socket.on('connect', function() {
             console.log('Соединение с сервером установлено');

@@ -3,8 +3,15 @@
  * Версия 3.0 с WebSocket
  */
 (function() {
-    // Конфигурация
-    const API_URL = 'http://localhost:5000';
+    // Настройки из конфигурации
+    const config = window.CHAT_CONFIG || {
+        API_URL: 'http://localhost:5000',
+        CHAT_ENDPOINT: '',
+        WEBSOCKET_URL: 'http://localhost:5000',
+        DEBUG: true
+    };
+    
+    const API_URL = config.API_URL;
     const CHAT_LIFETIME = 60 * 60 * 1000; // 1 час в миллисекундах
     
     // Глобальные переменные

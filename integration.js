@@ -3,8 +3,8 @@
  * Версия 4.1 - Корректная обработка всех форм сайта
  */
 (function() {
-    // Конфигурация
-    const API_URL = 'http://localhost:5000';
+    // Подключаем конфигурацию
+    const API_URL = (window.CHAT_CONFIG && window.CHAT_CONFIG.API_URL) || 'https://prava-online-shop.ru';
     
     // Глобальные переменные
     let socket = null;

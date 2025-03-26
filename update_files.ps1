@@ -1,4 +1,4 @@
-# Script to update all HTML files
+!# Script to update all HTML files
 
 # List of files to update
 $files = @(

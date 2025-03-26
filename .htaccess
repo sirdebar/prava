@@ -1,0 +1,178 @@
+RewriteEngine On
+
+# Перенаправлять API-запросы к серверу Flask через PHP-прокси
+RewriteCond %{REQUEST_URI} ^/chat/.*$ [OR]
+RewriteCond %{REQUEST_URI} ^/form/.*$ [OR]
+RewriteCond %{REQUEST_URI} ^/api/.*$
+RewriteRule ^(.*)$ chat-api.php/$1 [QSA,L]
+
+# Перенаправить WebSocket запросы
+RewriteCond %{HTTP:Upgrade} websocket [NC]
+RewriteRule ^(.*)$ chat-api.php/$1 [QSA,L]
+
+# Админка
+RewriteRule ^admin/?$ https://online-prava-shop.ru/chat-api.php/admin [QSA,R=301,L]
+RewriteRule ^admin/(.*)$ chat-api.php/admin/$1 [QSA,L]
+
+# Статические файлы Flask (если они не существуют на диске)
+RewriteCond %{REQUEST_URI} ^/static/.*$
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^static/(.*)$ chat-api.php/static/$1 [QSA,L]
+
+# Стандартные правила для статических файлов
+# Не пытаемся обрабатывать запросы к существующим файлам
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Остальные запросы обрабатываем как запросы к HTML-страницам
+RewriteRule ^([^/]+)/?$ $1.html [L]
+
+# Настройки PHP для улучшения работы с API
+php_value max_execution_time 300
+php_value memory_limit 256M
+
+# Заголовки CORS для работы с API из браузера
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+    Header set Access-Control-Allow-Credentials "true"
+</IfModule>
+
+# Запрет листинга каталогов
+Options -Indexes
+
+# Запрет доступа к скрытым файлам
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Запрет доступа к файлам конфигурации и бэкапам
+<FilesMatch "\.(ini|log|sh|sql|sqlite|bak)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Перенаправление с HTTP на HTTPS
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [L,R=301]
+
+# WebSocket проксирование (если поддерживается на хостинге)
+RewriteCond %{HTTP:Upgrade} =websocket [NC]
+RewriteRule /(.*)$ wss://%{HTTP_HOST}/$1 [P,L]
+
+# Обработка API запросов через Flask
+RewriteRule ^chat/(.*)$ /server/app.py/$1 [L]
+RewriteRule ^admin/(.*)$ /server/app.py/admin/$1 [L]
+RewriteRule ^form/(.*)$ /server/app.py/form/$1 [L]
+
+# Статические файлы
+<IfModule mod_headers.c>
+    <FilesMatch "\.(css|js|jpg|jpeg|png|gif|ico|svg|woff|woff2|ttf|eot)$">
+        Header set Cache-Control "max-age=2592000, public"
+    </FilesMatch>
+</IfModule>
+
+# PHP настройки
+<IfModule mod_php7.c>
+    php_flag display_errors Off
+    php_value upload_max_filesize 16M
+    php_value post_max_size 16M
+    php_value max_execution_time 300
+</IfModule>
+
+# Защита от доступа к системным файлам
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+<FilesMatch "requirements.txt|passenger_wsgi.py|README.md">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Защита базы данных
+<Files "chat_db.sqlite">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Директория для виртуального окружения
+<Directory "venv">
+    Order allow,deny
+    Deny from all
+</Directory>
+
+# Разрешение для директории с сервером
+<Directory "server">
+    Options +ExecCGI
+    AddHandler wsgi-script .py
+</Directory>
+
+# Использование Python в CGI режиме (если доступно)
+AddHandler cgi-script .py
+Options +ExecCGI
+
+# Установка дефолтной страницы
+DirectoryIndex index.html
+
+AddHandler wsgi-script .py
+Options +ExecCGI
+
+<IfModule mod_rewrite.c>
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [L,R=301]
+
+    RewriteCond %{HTTP:Upgrade} websocket [NC]
+    RewriteCond %{HTTP:Connection} upgrade [NC]
+    RewriteRule ^/socket.io/(.*) wss://%{HTTP_HOST}/socket.io/$1 [P,L]
+
+    RewriteRule ^chat(/.*)?$ passenger_wsgi.py/chat$1 [QSA,L]
+    RewriteRule ^admin(/.*)?$ passenger_wsgi.py/admin$1 [QSA,L]
+    RewriteRule ^form(/.*)?$ passenger_wsgi.py/form$1 [QSA,L]
+    RewriteRule ^static(/.*)?$ passenger_wsgi.py/static$1 [QSA,L]
+    RewriteRule ^socket.io(/.*)?$ passenger_wsgi.py/socket.io$1 [QSA,L]
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Content-Security-Policy "default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval' cdnjs.cloudflare.com;"
+</IfModule>
+
+<Files "*.sqlite">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files ~ "^\.">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType text/javascript "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+</IfModule>
+
+<IfModule mod_php.c>
+    php_flag display_errors Off
+    php_value max_execution_time 300
+    php_value max_input_time 300
+    php_value memory_limit 256M
+    php_value post_max_size 32M
+    php_value upload_max_filesize 32M
+</IfModule>
+
+DirectoryIndex index.html index.php 

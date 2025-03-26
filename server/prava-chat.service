@@ -1,0 +1,18 @@
+[Unit]
+Description=Prava Online Shop Chat Service
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/prava-chat/server
+Environment="PATH=/opt/prava-chat/server/venv/bin"
+ExecStart=/opt/prava-chat/server/venv/bin/gunicorn -c gunicorn_config.py app:app
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+Restart=always
+
+[Install]
+WantedBy=multi-user.target 
