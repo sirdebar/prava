@@ -1,0 +1,75 @@
+.chat-message {
+    margin-bottom: 10px;
+    max-width: 80%;
+}
+
+.user-message {
+    margin-left: auto;
+}
+
+.operator-message {
+    margin-right: auto;
+}
+
+.message-content {
+    padding: 8px 12px;
+    border-radius: 12px;
+    position: relative;
+}
+
+.user-message .message-content {
+    background-color: #007bff;
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.operator-message .message-content {
+    background-color: #f1f1f1;
+    color: #333;
+    border-bottom-left-radius: 4px;
+}
+
+.message-text {
+    margin-bottom: 4px;
+    word-wrap: break-word;
+}
+
+.message-time {
+    font-size: 11px;
+    opacity: 0.7;
+    text-align: right;
+}
+
+.user-message .message-time {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.operator-message .message-time {
+    color: rgba(0, 0, 0, 0.5);
+}
+
+.chat-message-system {
+    background: #f8f9fa;
+    color: #6c757d;
+    text-align: center;
+    max-width: 100%;
+    margin: 10px auto;
+    border: 1px dashed #dee2e6;
+    border-radius: 8px;
+}
+
+.chat-closed-message {
+    text-align: center;
+    color: #6c757d;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px dashed #dee2e6;
+    margin: 10px 0;
+}
+
+.chat-closed-message::before {
+    content: "⚠️";
+    margin-right: 8px;
+    font-size: 16px;
+} 

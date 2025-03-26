@@ -1,0 +1,228 @@
+{% extends "layout.html" %}
+
+{% block title %}Заявки{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Заявки от посетителей</h3>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="formTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link active" id="unprocessed-tab" data-toggle="tab" href="#unprocessed" role="tab" aria-controls="unprocessed" aria-selected="true">Необработанные</a>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <a class="nav-link" id="processed-tab" data-toggle="tab" href="#processed" role="tab" aria-controls="processed" aria-selected="false">Обработанные</a>
+                        </li>
+                    </ul>
+                    
+                    {% if forms %}
+                    <div class="tab-content mt-4" id="formTabsContent">
+                        <!-- Необработанные формы -->
+                        <div class="tab-pane fade show active" id="unprocessed" role="tabpanel" aria-labelledby="unprocessed-tab">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Тип формы</th>
+                                            <th>Дата</th>
+                                            <th>Имя</th>
+                                            <th>Телефон</th>
+                                            <th>Сообщение</th>
+                                            <th>Действия</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for form in forms if form.processed == 0 %}
+                                        <tr>
+                                            <td>{{ form.id }}</td>
+                                            <td>{{ form.form_name }}</td>
+                                            <td>{{ form.created_at }}</td>
+                                            <td>
+                                                {% if form.form_data %}
+                                                    {% set form_data_obj = form.form_data|fromjson %}
+                                                    {{ form_data_obj.name|default('-') }}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if form.form_data %}
+                                                    {% set form_data_obj = form.form_data|fromjson %}
+                                                    {% if form_data_obj.tel %}
+                                                        {{ form_data_obj.tel }}
+                                                    {% elif form_data_obj.phone %}
+                                                        {{ form_data_obj.phone }}
+                                                    {% else %}
+                                                        -
+                                                    {% endif %}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if form.form_data %}
+                                                    {% set form_data_obj = form.form_data|fromjson %}
+                                                    {% if form_data_obj.message %}
+                                                        {{ form_data_obj.message|truncate(50) }}
+                                                    {% else %}
+                                                        -
+                                                    {% endif %}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-success process-form-btn" data-toggle="modal" data-target="#processFormModal" data-form-id="{{ form.id }}" data-action="process">Обработать</button>
+                                                <button type="button" class="btn btn-sm btn-danger process-form-btn" data-toggle="modal" data-target="#processFormModal" data-form-id="{{ form.id }}" data-action="reject">Отклонить</button>
+                                            </td>
+                                        </tr>
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="7" class="text-center">Нет необработанных заявок</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Обработанные формы -->
+                        <div class="tab-pane fade" id="processed" role="tabpanel" aria-labelledby="processed-tab">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Тип формы</th>
+                                            <th>Дата</th>
+                                            <th>Имя</th>
+                                            <th>Телефон</th>
+                                            <th>Сообщение</th>
+                                            <th>Статус</th>
+                                            <th>Обработано</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for form in forms if form.processed > 0 %}
+                                        <tr>
+                                            <td>{{ form.id }}</td>
+                                            <td>{{ form.form_name }}</td>
+                                            <td>{{ form.created_at }}</td>
+                                            <td>
+                                                {% if form.form_data %}
+                                                    {% set form_data_obj = form.form_data|fromjson %}
+                                                    {{ form_data_obj.name|default('-') }}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if form.form_data %}
+                                                    {% set form_data_obj = form.form_data|fromjson %}
+                                                    {% if form_data_obj.tel %}
+                                                        {{ form_data_obj.tel }}
+                                                    {% elif form_data_obj.phone %}
+                                                        {{ form_data_obj.phone }}
+                                                    {% else %}
+                                                        -
+                                                    {% endif %}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if form.form_data %}
+                                                    {% set form_data_obj = form.form_data|fromjson %}
+                                                    {% if form_data_obj.message %}
+                                                        {{ form_data_obj.message|truncate(50) }}
+                                                    {% else %}
+                                                        -
+                                                    {% endif %}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if form.processed == 1 %}
+                                                <span class="badge badge-success">Обработано</span>
+                                                {% elif form.processed == 2 %}
+                                                <span class="badge badge-danger">Отклонено</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ form.processed_at }}</td>
+                                        </tr>
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="8" class="text-center">Нет обработанных заявок</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info mt-4">
+                        <p>Заявок пока нет</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для обработки формы -->
+<div class="modal fade" id="processFormModal" tabindex="-1" role="dialog" aria-labelledby="processFormModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="processFormModalLabel">Обработка заявки</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="processFormForm" action="/admin/process_form" method="post">
+                <div class="modal-body">
+                    <input type="hidden" id="formId" name="form_id" value="">
+                    <input type="hidden" id="formStatus" name="status" value="">
+                    
+                    <div class="form-group">
+                        <label for="comment">Комментарий</label>
+                        <textarea class="form-control" id="comment" name="comment" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Подтвердить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Скрипт для заполнения данных формы в модальном окне
+    document.addEventListener('DOMContentLoaded', function() {
+        const processFormBtns = document.querySelectorAll('.process-form-btn');
+        processFormBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const formId = this.getAttribute('data-form-id');
+                const action = this.getAttribute('data-action');
+                
+                document.getElementById('formId').value = formId;
+                document.getElementById('formStatus').value = action;
+                
+                const modalTitle = document.getElementById('processFormModalLabel');
+                modalTitle.textContent = action === 'process' ? 'Обработка заявки' : 'Отклонение заявки';
+            });
+        });
+    });
+</script>
+{% endblock %} 

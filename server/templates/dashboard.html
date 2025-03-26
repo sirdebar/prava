@@ -1,0 +1,71 @@
+{% extends "layout.html" %}
+
+{% block title %}Панель управления - Оператор{% endblock %}
+
+{% block header %}Панель управления{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-comments"></i> Активные чаты</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="dashboard-stat">{{ active_chats }}</div>
+                <p class="text-muted">чатов требуют внимания</p>
+                <a href="/admin/chats" class="btn btn-outline-primary btn-sm">Перейти к чатам</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-bell"></i> Непрочитанные сообщения</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="dashboard-stat">{{ unread_messages }}</div>
+                <p class="text-muted">новых сообщений от клиентов</p>
+                <a href="/admin/chats" class="btn btn-outline-primary btn-sm">Ответить на сообщения</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-file-alt"></i> Новые заявки</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="dashboard-stat">{{ unprocessed_forms }}</div>
+                <p class="text-muted">заявок ожидают обработки</p>
+                <a href="/admin/forms" class="btn btn-outline-primary btn-sm">Обработать заявки</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                Последняя активность
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Добро пожаловать в панель оператора для управления чатами и заявками со всех сайтов.
+                </div>
+                <p>
+                    Через эту панель вы можете управлять всеми чатами и заявками, поступающими с различных сайтов.
+                    Для начала работы выберите раздел в меню слева.
+                </p>
+                <ul>
+                    <li><strong>Чаты</strong> - позволяет общаться с посетителями сайтов в режиме реального времени.</li>
+                    <li><strong>Заявки</strong> - управление заявками, поступающими через формы обратной связи.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

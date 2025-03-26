@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чат-виджет</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body, html {
+            height: 100%;
+            overflow: hidden;
+            background-color: transparent;
+            font-family: Arial, sans-serif;
+        }
+        
+        /* Кнопка чата */
+        #chat-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #23B684;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            z-index: 999998;
+            transition: all 0.3s ease;
+        }
+        
+        #chat-btn i {
+            font-size: 24px;
+        }
+        
+        #chat-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Счетчик непрочитанных сообщений */
+        #unread-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background-color: #ff4d4d;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+            display: none;
+        }
+        
+        /* Окно чата */
+        #chat-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 320px;
+            height: 400px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 999999;
+            overflow: hidden;
+            display: none;
+            flex-direction: column;
+        }
+        
+        /* Заголовок чата */
+        #chat-header {
+            background-color: #23B684;
+            color: white;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        #chat-title {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        #chat-close {
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        /* Область сообщений */
+        #chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: #f8f8f8;
+        }
+        
+        /* Форма ввода */
+        #chat-input-area {
+            padding: 10px;
+            border-top: 1px solid #eee;
+        }
+        
+        /* Формы */
+        #chat-user-form {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #chat-message-form {
+            display: none;
+        }
+        
+        .chat-input {
+            width: 100%;
+            padding: 8px 10px;
+            margin-bottom: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        #chat-message-input {
+            height: 35px;
+            resize: none;
+        }
+        
+        /* Стили для плейсхолдеров */
+        .chat-input::placeholder {
+            color: #999;
+            opacity: 1;
+        }
+        
+        /* Поддержка для Firefox */
+        .chat-input::-moz-placeholder {
+            color: #999;
+            opacity: 1;
+        }
+        
+        /* Поддержка для Edge */
+        .chat-input::-ms-input-placeholder {
+            color: #999;
+            opacity: 1;
+        }
+        
+        /* Поддержка для IE */
+        .chat-input:-ms-input-placeholder {
+            color: #999;
+            opacity: 1;
+        }
+        
+        .chat-btn {
+            background-color: #23B684;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 14px;
+            align-self: flex-end;
+        }
+        
+        /* Сообщения */
+        .message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 15px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        
+        .message-user {
+            background-color: #e1f5fe;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .message-operator {
+            background-color: #f1f1f1;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .message-system {
+            background-color: #ffefd5; /* персиковый цвет для системных сообщений */
+            margin-right: auto;
+            margin-left: auto;
+            text-align: center;
+            font-style: italic;
+            color: #666;
+            border-radius: 5px;
+            font-size: 12px;
+            padding: 5px 10px;
+        }
+        
+        .message-time {
+            font-size: 11px;
+            color: #888;
+            text-align: right;
+            margin-top: 3px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Кнопка чата -->
+    <div id="chat-btn">
+        <i class="fas fa-comments"></i>
+        <span id="unread-badge">0</span>
+    </div>
+
+    <!-- Окно чата -->
+    <div id="chat-container">
+        <div id="chat-header">
+            <div id="chat-title">Чат с оператором</div>
+            <div id="chat-close"><i class="fas fa-times"></i></div>
+        </div>
+        <div id="chat-messages"></div>
+        <div id="chat-input-area">
+            <!-- Форма для данных пользователя -->
+            <div id="chat-user-form">
+                <input type="text" id="chat-name" class="chat-input" placeholder="Ваше имя" required>
+                <input type="text" id="chat-phone" class="chat-input" placeholder="Ваш телефон" required>
+                <button id="chat-start-btn" class="chat-btn">Начать чат</button>
+            </div>
+            <!-- Форма для отправки сообщений -->
+            <div id="chat-message-form">
+                <textarea id="chat-message-input" class="chat-input" placeholder="Введите сообщение..."></textarea>
+                <button id="chat-send-btn" class="chat-btn">Отправить</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Основные элементы интерфейса
+        const chatBtn = document.getElementById('chat-btn');
+        const chatContainer = document.getElementById('chat-container');
+        const chatClose = document.getElementById('chat-close');
+        const chatMessages = document.getElementById('chat-messages');
+        const unreadBadge = document.getElementById('unread-badge');
+        
+        // Элементы форм
+        const userForm = document.getElementById('chat-user-form');
+        const messageForm = document.getElementById('chat-message-form');
+        const nameInput = document.getElementById('chat-name');
+        const phoneInput = document.getElementById('chat-phone');
+        const messageInput = document.getElementById('chat-message-input');
+        const startBtn = document.getElementById('chat-start-btn');
+        const sendBtn = document.getElementById('chat-send-btn');
+        
+        // Состояние чата
+        let isOpen = false;
+        let chatActive = false;
+        
+        // Проверяем статус чата при загрузке
+        window.onload = function() {
+            // Уведомляем родительское окно, что чат-виджет загружен
+            window.parent.postMessage({
+                type: 'chatWidgetAction',
+                action: 'checkChatStatus'
+            }, '*');
+        };
+        
+        // Обработчик сообщений от родительского окна
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'chatAction') {
+                const action = event.data.action;
+                
+                switch (action) {
+                    case 'openChat':
+                        openChat();
+                        break;
+                    case 'newMessage':
+                        // Добавляем новое сообщение от оператора в чат
+                        if (event.data.isOperator) {
+                            addMessage(event.data.message, 'operator');
+                        } else if (event.data.isSystem) {
+                            addSystemMessage(event.data.message);
+                        }
+                        break;
+                    case 'chatStatus':
+                        // Получаем информацию о статусе чата
+                        chatActive = event.data.active;
+                        if (chatActive) {
+                            // Чат активен, показываем форму сообщений
+                            userForm.style.display = 'none';
+                            messageForm.style.display = 'block';
+                        }
+                        break;
+                    case 'loadExistingChat':
+                        // Загружаем существующий чат с историей сообщений
+                        userForm.style.display = 'none';
+                        messageForm.style.display = 'block';
+                        chatActive = true;
+                        
+                        // Очищаем область сообщений перед загрузкой истории
+                        chatMessages.innerHTML = '';
+                        
+                        // Добавляем сообщения из истории
+                        if (event.data.messages && event.data.messages.length) {
+                            event.data.messages.forEach(msg => {
+                                if (msg.sender === 'client') {
+                                    addMessage(msg.message, 'user');
+                                } else if (msg.sender === 'operator') {
+                                    addMessage(msg.message, 'operator');
+                                } else if (msg.sender === 'system') {
+                                    addSystemMessage(msg.message);
+                                }
+                            });
+                        }
+                        break;
+                }
+            }
+        });
+        
+        // Открыть чат
+        function openChat() {
+            isOpen = true;
+            chatContainer.style.display = 'flex';
+            chatBtn.style.display = 'none';
+            unreadBadge.style.display = 'none';
+            unreadBadge.textContent = '0';
+            
+            // Сообщаем родительскому окну, что чат открыт
+            window.parent.postMessage({
+                type: 'chatWidgetAction',
+                action: 'opened'
+            }, '*');
+            
+            // Прокручиваем до последнего сообщения
+            scrollToBottom();
+        }
+        
+        // Закрыть чат (свернуть)
+        function closeChat() {
+            isOpen = false;
+            chatContainer.style.display = 'none';
+            
+            // Сообщаем родительскому окну, что чат свернут
+            window.parent.postMessage({
+                type: 'chatWidgetAction',
+                action: 'closed'
+            }, '*');
+        }
+        
+        // Добавить сообщение в чат
+        function addMessage(text, sender) {
+            // Создаем элемент сообщения
+            const messageEl = document.createElement('div');
+            messageEl.classList.add('message');
+            messageEl.classList.add('message-' + sender);
+            
+            // Добавляем текст сообщения
+            messageEl.textContent = text;
+            
+            // Добавляем время
+            const timeEl = document.createElement('div');
+            timeEl.classList.add('message-time');
+            const now = new Date();
+            timeEl.textContent = now.getHours().toString().padStart(2, '0') + ':' + 
+                                 now.getMinutes().toString().padStart(2, '0');
+            messageEl.appendChild(timeEl);
+            
+            // Добавляем сообщение в контейнер
+            chatMessages.appendChild(messageEl);
+            
+            // Прокручиваем до последнего сообщения
+            scrollToBottom();
+        }
+        
+        // Добавить системное сообщение
+        function addSystemMessage(text) {
+            // Создаем элемент сообщения
+            const messageEl = document.createElement('div');
+            messageEl.classList.add('message');
+            messageEl.classList.add('message-system');
+            
+            // Добавляем текст сообщения
+            messageEl.textContent = text;
+            
+            // Добавляем сообщение в контейнер
+            chatMessages.appendChild(messageEl);
+            
+            // Прокручиваем до последнего сообщения
+            scrollToBottom();
+        }
+        
+        // Прокрутить чат вниз
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Начать чат (отправить данные пользователя)
+        function startChat() {
+            const name = nameInput.value.trim();
+            const phone = phoneInput.value.trim();
+            
+            // Проверяем заполнение полей
+            if (!name || !phone) {
+                alert('Пожалуйста, заполните все поля');
+                return;
+            }
+            
+            // Проверяем формат телефона
+            if (!isValidPhone(phone)) {
+                alert('Пожалуйста, введите корректный номер телефона');
+                return;
+            }
+            
+            // Сообщаем родительскому окну о начале чата
+            window.parent.postMessage({
+                type: 'chatWidgetAction',
+                action: 'startChat',
+                name: name,
+                phone: phone
+            }, '*');
+            
+            // Скрываем форму пользователя и показываем форму сообщений
+            userForm.style.display = 'none';
+            messageForm.style.display = 'block';
+            chatActive = true;
+            
+            // Приветственное сообщение
+            addSystemMessage('Чат начат. Пожалуйста, напишите ваш вопрос');
+        }
+        
+        // Отправить сообщение
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            
+            if (!text || !chatActive) {
+                return;
+            }
+            
+            // Добавляем сообщение пользователя в чат
+            addMessage(text, 'user');
+            
+            // Отправляем сообщение родительскому окну
+            window.parent.postMessage({
+                type: 'chatWidgetAction',
+                action: 'sendMessage',
+                message: text
+            }, '*');
+            
+            // Очищаем поле ввода
+            messageInput.value = '';
+        }
+        
+        // Проверка формата телефона
+        function isValidPhone(phone) {
+            // Простая проверка - минимум 7 цифр
+            return /^\+?[\d\s()-]{7,}$/.test(phone);
+        }
+        
+        // Обработчики событий
+        // Открытие чата
+        chatBtn.addEventListener('click', openChat);
+        
+        // Закрытие чата
+        chatClose.addEventListener('click', closeChat);
+        
+        // Начало чата
+        startBtn.addEventListener('click', startChat);
+        
+        // Отправка сообщения
+        sendBtn.addEventListener('click', sendMessage);
+        
+        // Отправка сообщения по нажатию Enter
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html> 

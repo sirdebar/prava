@@ -1,0 +1,24 @@
+                    <th>ID</th>
+                    <th>Дата</th>
+                    <th>Тип формы</th>
+                    <th>Имя</th>
+                    <th>Телефон</th>
+                    <th>Сообщение</th>
+                    <th>Страница</th>
+                    <th>Статус</th>
+                    <th>Действия</th>
+                    <td>{{ form.id }}</td>
+                    <td>{{ formatDateTime(form.created_at) }}</td>
+                    <td>{{ form.form_name }}</td>
+                    <td>{{ formData.name if formData and formData.name else '—' }}</td>
+                    <td>{{ formData.tel if formData and formData.tel else '—' }}</td>
+                    <td>{{ formData.message if formData and formData.message else '—' }}</td>
+                    <td>{{ form.page_url }}</td>
+                    <td>
+                        {% if form.processed == 1 %}
+                        <span class="label label-success">Обработана</span>
+                        {% elif form.processed == 2 %}
+                        <span class="label label-danger">Отклонена</span>
+                        {% else %}
+                        <span class="label label-warning">Новая</span>
+                        {% endif %} 

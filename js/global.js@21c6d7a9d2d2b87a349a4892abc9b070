@@ -1,0 +1,85 @@
+(function($){
+	var user = {};
+/*
+	$('form','.slider').on('click','[type="submit"]', function(e){
+		e.preventDefault();
+		let $form = $(this).closest('form');
+		user.type = 'contact_form';
+		user.first_name = $('[name="name"]', $form).val();
+		user.phone = $('[name="tel"]', $form).val();
+		user.message = $('[name="message"]', $form).val();
+
+		let notempty = true;
+		for(let i in user){
+			if (user[i] == ''){
+				notempty = false;
+			}
+		}
+		if(notempty){
+			sendMessage();
+			$($form).trigger('reset');
+		}else{
+			alert('Не все поля заполненны!');
+		}
+		//console.log(user);
+	});
+*/
+
+	$('form','.container').on('click','[type="submit"]', function(e){
+		e.preventDefault();
+		let $form = $(this).closest('form');
+		user.type = 'contact_form';
+		user.first_name = $('[name="name"]', $form).val();
+		user.phone = $('[name="tel"]', $form).val();
+		user.message = $('[name="message"]', $form).val();
+		let notempty = true;
+		for(let i in user){
+			if (user[i] == ''){
+				notempty = false;
+			}
+		}
+		if(notempty){
+			ym(97974453,'reachGoal','zayvka');
+			sendMessage();
+			$($form).trigger('reset');
+			var url = "./zvonok_ok";
+			$(location).attr('href',url);
+		}else{
+			alert('Не все поля заполненны!');
+		}
+	});
+
+	$('#myModal').on('click','[type="submit"]', function(e){
+		e.preventDefault();
+		//$.ajax({ type: 'post', url: './process-form.php', dataType: 'json',
+		//	data: {	captcha: $('.captcha [name="captcha"]').val() },
+		//	success: function (data) {
+		//		if(data.success){
+					sendMessage();
+		//		}else{
+		//			console.log(data);
+		//		}
+		//	}
+		//});
+	});
+
+	function sendMessage(){
+		$.ajax({ type: 'post', url: './?get=send_contacts', dataType: 'json',
+			data: user,
+			success: function (data) {
+				user = {};
+				alert('Ваша заявка отправлена!');
+				console.log(data);
+			}
+		});
+	}
+
+	function refreshCaptcha(){
+		 $('.captcha__image', '.captcha__image-reload').attr('src','/captcha.php?r=' + new Date().getUTCMilliseconds());
+	}
+
+	$('.captcha__image-reload').on('click','button', function(e){
+		refreshCaptcha();
+	});
+
+})(jQuery);

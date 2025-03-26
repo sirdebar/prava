@@ -1,0 +1,171 @@
+{% extends "layout.html" %}
+
+{% block title %}Заявка #{{ form.id }} - Панель оператора{% endblock %}
+
+{% block header %}Заявка #{{ form.id }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    {% if form.is_processed == 0 %}
+                    <span class="badge badge-warning">Новая заявка</span>
+                    {% elif form.is_processed == 1 %}
+                    <span class="badge badge-success">Заявка обработана</span>
+                    {% elif form.is_processed == 2 %}
+                    <span class="badge badge-danger">Заявка отклонена</span>
+                    {% endif %}
+                </h5>
+                <div>
+                    <a href="/admin/forms" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Назад к списку
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Основная информация</h6>
+                        <ul class="list-group list-group-flush mb-4">
+                            <li class="list-group-item">
+                                <strong>Имя:</strong> {{ form.name }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Телефон:</strong> {{ form.phone }}
+                            </li>
+                            {% if form.email %}
+                            <li class="list-group-item">
+                                <strong>Email:</strong> {{ form.email }}
+                            </li>
+                            {% endif %}
+                            <li class="list-group-item">
+                                <strong>Дата создания:</strong> 
+                                {{ form.created_at.split('T')[0] }}
+                                {{ form.created_at.split('T')[1].split('.')[0] }}
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Дополнительная информация</h6>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                <strong>Сайт:</strong> {{ form.site_id }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Тип формы:</strong> {{ form.form_id }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>IP адрес:</strong> {{ form.ip_address }}
+                            </li>
+                            {% if form.is_processed > 0 %}
+                            <li class="list-group-item">
+                                <strong>Обработал:</strong> {{ form.processed_by }}
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Дата обработки:</strong> 
+                                {{ form.processed_at.split('T')[0] }}
+                                {{ form.processed_at.split('T')[1].split('.')[0] }}
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+                
+                {% if form.message %}
+                <h6 class="mt-4">Сообщение:</h6>
+                <div class="card">
+                    <div class="card-body bg-light">
+                        {{ form.message }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if form.page_url %}
+                <h6 class="mt-4">Страница отправки:</h6>
+                <div class="card">
+                    <div class="card-body bg-light">
+                        <a href="{{ form.page_url }}" target="_blank">{{ form.page_url }}</a>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if form.is_processed == 0 %}
+                <hr>
+                <h5 class="mt-4">Обработка заявки</h5>
+                <div class="card">
+                    <div class="card-body">
+                        <form action="/admin/process_form" method="post">
+                            <input type="hidden" name="form_id" value="{{ form.id }}">
+                            <div class="form-group">
+                                <label for="status">Выберите действие:</label>
+                                <select name="status" id="status" class="form-control">
+                                    <option value="processed">Обработана</option>
+                                    <option value="rejected">Отклонена</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="comment">Комментарий (необязательно):</label>
+                                <textarea name="comment" id="comment" class="form-control" rows="3"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check"></i> Подтвердить
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Возможные действия</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% if form.phone %}
+                    <a href="tel:{{ form.phone }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-phone"></i> Позвонить клиенту
+                    </a>
+                    {% endif %}
+                    
+                    {% if form.email %}
+                    <a href="mailto:{{ form.email }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-envelope"></i> Написать на Email
+                    </a>
+                    {% endif %}
+                    
+                    {% if form.page_url %}
+                    <a href="{{ form.page_url }}" target="_blank" class="list-group-item list-group-item-action">
+                        <i class="fas fa-external-link-alt"></i> Открыть страницу
+                    </a>
+                    {% endif %}
+                </div>
+                
+                {% if form.is_processed == 0 %}
+                <div class="alert alert-warning mt-4">
+                    <i class="fas fa-exclamation-triangle"></i> 
+                    Заявка ожидает обработки. Пожалуйста, свяжитесь с клиентом и отметьте заявку как обработанную.
+                </div>
+                {% elif form.is_processed == 1 %}
+                <div class="alert alert-success mt-4">
+                    <i class="fas fa-check-circle"></i> 
+                    Заявка уже обработана оператором {{ form.processed_by }} 
+                    {{ form.processed_at.split('T')[0] }}.
+                </div>
+                {% elif form.is_processed == 2 %}
+                <div class="alert alert-danger mt-4">
+                    <i class="fas fa-ban"></i> 
+                    Заявка была отклонена оператором {{ form.processed_by }} 
+                    {{ form.processed_at.split('T')[0] }}.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

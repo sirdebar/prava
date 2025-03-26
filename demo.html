@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Демонстрация чата и формы обратной связи</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <style>
+        .header {
+            background-color: #23B684;
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        .contact-form {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .footer {
+            background-color: #343a40;
+            color: white;
+            padding: 20px 0;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8">
+                    <h1>Демонстрация онлайн-чата</h1>
+                    <p class="lead">Тестирование чата и формы обратной связи</p>
+                </div>
+                <div class="col-md-4 text-right">
+                    <p><i class="fas fa-phone"></i> 8 (800) 123-45-67</p>
+                    <p><i class="fas fa-envelope"></i> info@example.com</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8">
+                <h2>О нашей компании</h2>
+                <p>
+                    Мы предоставляем качественные услуги нашим клиентам уже более 10 лет. 
+                    Наша команда профессионалов готова помочь вам решить любые задачи.
+                </p>
+                <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam auctor, nisl eget ultricies aliquam, 
+                    nunc nisl aliquet nunc, eget aliquam nisl nunc eget nisl. Nullam auctor, nisl eget ultricies aliquam, 
+                    nunc nisl aliquet nunc, eget aliquam nisl nunc eget nisl.
+                </p>
+                <p>
+                    Для получения подробной информации о наших услугах, вы можете связаться с нами, 
+                    заполнив форму обратной связи или написав нам в онлайн-чат.
+                </p>
+            </div>
+            <div class="col-md-4">
+                <h3>Новости компании</h3>
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Расширение ассортимента услуг</h5>
+                        <p class="card-text">Мы рады сообщить о запуске новых услуг для наших клиентов.</p>
+                        <p class="card-text"><small class="text-muted">Опубликовано 15.05.2023</small></p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Акция для новых клиентов</h5>
+                        <p class="card-text">Скидка 15% на все услуги для новых клиентов до конца месяца.</p>
+                        <p class="card-text"><small class="text-muted">Опубликовано 01.05.2023</small></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-md-12">
+                <h2 class="text-center mb-4">Свяжитесь с нами</h2>
+                <div class="contact-form">
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <label for="name">Ваше имя*</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Ваш телефон*</label>
+                            <input type="tel" class="form-control" id="phone" name="phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Ваш email</label>
+                            <input type="email" class="form-control" id="email" name="email">
+                        </div>
+                        <div class="form-group">
+                            <label for="message">Сообщение</label>
+                            <textarea class="form-control" id="message" name="message" rows="4"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Отправить заявку</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>Контактная информация</h5>
+                    <p><i class="fas fa-map-marker-alt"></i> г. Москва, ул. Примерная, д. 123</p>
+                    <p><i class="fas fa-phone"></i> 8 (800) 123-45-67</p>
+                    <p><i class="fas fa-envelope"></i> info@example.com</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Часы работы</h5>
+                    <p>Понедельник - Пятница: 9:00 - 18:00</p>
+                    <p>Суббота: 10:00 - 16:00</p>
+                    <p>Воскресенье: выходной</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Мы в социальных сетях</h5>
+                    <p>
+                        <a href="#" class="text-white"><i class="fab fa-facebook-f fa-lg mr-3"></i></a>
+                        <a href="#" class="text-white"><i class="fab fa-instagram fa-lg mr-3"></i></a>
+                        <a href="#" class="text-white"><i class="fab fa-vk fa-lg mr-3"></i></a>
+                        <a href="#" class="text-white"><i class="fab fa-telegram-plane fa-lg"></i></a>
+                    </p>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12 text-center">
+                    <p>&copy; 2023 Все права защищены.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Подключение скрипта интеграции чата -->
+    <script src="integration.js"></script>
+</body>
+</html> 

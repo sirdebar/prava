@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Активные чаты | Админ-панель</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <style>
+        .chats-container {
+            display: flex;
+            height: calc(100vh - 110px);
+        }
+        .chats-list-container {
+            width: 30%;
+            border-right: 1px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .chat-view-container {
+            width: 70%;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-placeholder {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f8f9fa;
+        }
+        .placeholder-content {
+            text-align: center;
+            color: #6c757d;
+        }
+        .placeholder-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .chat-inner-container {
+            height: 100%;
+            display: none;
+            flex-direction: column;
+        }
+        .chat-header {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-user-info {
+            font-weight: bold;
+        }
+        .chat-user-phone {
+            font-size: 14px;
+            color: #6c757d;
+            margin-left: 10px;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 80%;
+            clear: both;
+        }
+        .message-left {
+            float: left;
+            background-color: #f1f3f5;
+        }
+        .message-right {
+            float: right;
+            background-color: #4c6ef5;
+            color: white;
+        }
+        .message-content {
+            position: relative;
+        }
+        .message-time {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 5px;
+            text-align: right;
+        }
+        .chat-input-container {
+            padding: 15px;
+            border-top: 1px solid #e9ecef;
+        }
+        .chat-item {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border: 1px solid #e9ecef;
+        }
+        .chat-item:hover {
+            background-color: #f8f9fa;
+        }
+        .chat-item.active {
+            background-color: #e9ecef;
+            border-color: #4c6ef5;
+        }
+        .chat-name {
+            font-weight: bold;
+        }
+        .chat-phone {
+            font-size: 14px;
+            color: #6c757d;
+        }
+        .chat-time {
+            font-size: 12px;
+            color: #adb5bd;
+            margin-top: 5px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/admin">Админ-панель</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="/admin/chats">Чаты</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/forms">Формы</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <span class="nav-link">
+                            <i class="fas fa-comment"></i> <span id="active-chats-counter">0</span>
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <span class="nav-link">
+                            <i class="fas fa-envelope"></i> <span id="unread-messages-counter">0</span>
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <span class="nav-link">
+                            <i class="fas fa-file-alt"></i> <span id="unprocessed-forms-counter">0</span>
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/logout">Выход</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-3">
+        <div class="chats-container">
+            <div class="chats-list-container">
+                <h4>Активные чаты</h4>
+                <div id="loading" class="loading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Загрузка...</span>
+                    </div>
+                    <p class="mt-2">Загрузка чатов...</p>
+                </div>
+                <div id="chats-list" class="chats-list">
+                    <!-- Здесь будут отображаться чаты через JavaScript -->
+                </div>
+            </div>
+            
+            <div class="chat-view-container">
+                <div id="chat-placeholder" class="chat-placeholder">
+                    <div class="placeholder-content">
+                        <i class="fas fa-comments placeholder-icon"></i>
+                        <p>Выберите чат из списка слева</p>
+                    </div>
+                </div>
+                
+                <div id="chat-container" class="chat-inner-container">
+                    <div class="chat-header">
+                        <div class="chat-user-info">
+                            <span id="chat-user-name"></span>
+                            <span id="chat-user-phone"></span>
+                        </div>
+                        <div class="chat-actions">
+                            <button id="close-chat-btn" class="btn btn-sm btn-outline-danger">
+                                <i class="fas fa-times"></i> Закрыть чат
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="chat-messages" class="chat-messages">
+                        <!-- Здесь будут отображаться сообщения через JavaScript -->
+                    </div>
+                    
+                    <div class="chat-input-container">
+                        <form id="message-form">
+                            <div class="input-group">
+                                <input type="text" id="message-input" class="form-control" placeholder="Введите сообщение..." autocomplete="off">
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.2/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html> 
